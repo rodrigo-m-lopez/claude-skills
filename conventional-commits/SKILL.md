@@ -1,133 +1,136 @@
 ---
 name: conventional-commits
 description: >
-  Padrão de mensagem para commits git. Use sempre que um commit for ser criado
-  ou a mensagem de commit precisar ser escrita ou revisada. Carregue automaticamente
-  ao realizar qualquer operação de git commit.
-user-invocable: true
-disable-model-invocation: false
+  Commit message standard for all git commits. Use this skill whenever creating a
+  commit message or reviewing one. Before executing any git commit, show the user a
+  preview — including target branch, added/removed/modified files, and the proposed
+  message — and wait for explicit confirmation. Apply even for small or "obvious"
+  changes; consistent commit messages make the git history readable and automation
+  (changelogs, release notes) reliable.
 ---
 
-## Prévia obrigatória antes de qualquer commit
+# Conventional Commits
 
-Antes de executar o `git commit`, **sempre** exiba uma prévia para confirmação do usuário no seguinte formato:
-
-```
-Branch destino: <nome-do-branch>
-
-Arquivos adicionados:
-  + caminho/do/arquivo.ext
-  (omitir seção se não houver)
-
-Arquivos removidos:
-  - caminho/do/arquivo.ext
-  (omitir seção se não houver)
-
-Arquivos alterados:
-  ~ caminho/do/arquivo.ext
-  (omitir seção se não houver)
-
-Mensagem do commit:
-  <tipo>(<escopo>): <descrição>
-
-  <corpo, se houver>
-```
-
-Só prossiga com o commit após confirmação explícita do usuário. Se o usuário rejeitar ou sugerir alterações, ajuste e exiba a prévia novamente antes de tentar o commit.
+Consistent commit messages make history scannable and enable automated tooling like
+changelogs and release notes. The format is simple once internalized.
 
 ---
 
-Toda mensagem de commit deve seguir o padrão Conventional Commits.
+## Preview before every commit
+
+Before running `git commit`, show the user a preview in this format and wait for explicit confirmation:
+
+```
+Target branch: <branch-name>
+
+Added files:
+  + path/to/file.ext
+  (omit section if none)
+
+Removed files:
+  - path/to/file.ext
+  (omit section if none)
+
+Modified files:
+  ~ path/to/file.ext
+  (omit section if none)
+
+Commit message:
+  <type>(<scope>): <description>
+
+  <body, if any>
+```
+
+If the user rejects or suggests changes, adjust and show the preview again before committing.
 
 ---
 
-## Formato
+## Format
 
 ```
-<tipo>(<escopo>): <descrição>
+<type>(<scope>): <description>
 
-[corpo opcional]
+[optional body]
 
-[rodapé(s) opcional(is)]
+[optional footer(s)]
 ```
 
-- **tipo** e **descrição** são obrigatórios.
-- **escopo** é opcional — use quando ajuda a localizar onde a mudança ocorre (ex: `auth`, `crawler`, `api`).
-- Linha do título: máximo 72 caracteres.
-- Descrição em **minúsculas**, sem ponto final, no **imperativo** ("adiciona" não "adicionado").
+- `type` and `description` are required; `scope` is optional.
+- Title line: max 72 characters.
+- Description: **lowercase**, no trailing period, **imperative mood** ("add" not "added", "fix" not "fixed").
 
 ---
 
-## Tipos
+## Types
 
-| Tipo | Quando usar |
+| Type | When to use |
 |---|---|
-| `feat` | Nova funcionalidade para o usuário |
-| `fix` | Correção de bug |
-| `refactor` | Mudança de código que não adiciona feature nem corrige bug |
-| `test` | Adição ou correção de testes |
-| `docs` | Apenas documentação |
-| `chore` | Tarefas de manutenção, configs, dependências |
-| `perf` | Melhoria de performance |
-| `ci` | Mudanças em pipelines de CI/CD |
-| `build` | Mudanças no sistema de build ou dependências externas |
-| `revert` | Reverte um commit anterior |
-| `style` | Formatação, ponto-e-vírgula, espaços — sem mudança de lógica |
+| `feat` | New feature for the user |
+| `fix` | Bug fix |
+| `refactor` | Code change that neither adds a feature nor fixes a bug |
+| `test` | Adding or correcting tests |
+| `docs` | Documentation only |
+| `chore` | Maintenance tasks, configs, dependencies |
+| `perf` | Performance improvement |
+| `ci` | CI/CD pipeline changes |
+| `build` | Build system or external dependency changes |
+| `revert` | Reverts a previous commit |
+| `style` | Formatting, whitespace — no logic change |
 
 ---
 
 ## Breaking changes
 
-Dois formatos aceitos:
+Two accepted formats:
 
-**1. Ponto de exclamação após o tipo:**
+**1. Exclamation mark after the type:**
 ```
-feat!: remove suporte ao endpoint legado /v1/events
+feat!: remove support for legacy /v1/events endpoint
 ```
 
-**2. Rodapé `BREAKING CHANGE`:**
+**2. `BREAKING CHANGE` footer:**
 ```
-feat(api): altera formato de resposta de odds
+feat(api): change odds response format
 
-BREAKING CHANGE: campo `odd` renomeado para `oddDecimal` em todos os endpoints.
+BREAKING CHANGE: field `odd` renamed to `oddDecimal` across all endpoints.
 ```
 
 ---
 
-## Corpo e rodapé
+## Body and footers
 
-- Separe título do corpo com **uma linha em branco**.
-- O corpo explica o **porquê**, não o **o quê** (o diff já mostra o quê).
-- Rodapés seguem o formato `Token: valor` ou `Token #referência`.
+- Separate title from body with a **blank line**.
+- The body explains the **why**, not the what — the diff already shows what changed.
+- Footers follow the format `Token: value` or `Token #reference`.
 
 ```
-fix(crawler): corrige parsing de odds nulas na Betano
+fix(crawler): handle null odds returned by Betano API
 
-Odds nulas retornadas pela API causavam NullPointerException no mapper.
-Adicionada verificação defensiva antes da conversão para Double.
+Null odds from the API caused a NullPointerException in the mapper.
+Added a defensive null check before the Double conversion.
 
 Closes #42
 ```
 
 ---
 
-## Exemplos válidos
+## Valid examples
 
 ```
-feat(crawler): adiciona suporte ao site Hiperbet via Altenar
-fix(service): evita divisão por zero no cálculo de margem
-refactor(json): extrai AltenarJsonMapper para classe dedicada
-test(crawler): adiciona fixture JSON real da Betano
-chore: atualiza dependência do Playwright para 1.42
-docs: documenta níveis de complexidade de crawlers
-feat!: remove endpoint /api/v1/partidas descontinuado
+feat(crawler): add Hiperbet support via Altenar platform
+fix(service): prevent division by zero in margin calculation
+refactor(json): extract AltenarJsonMapper into dedicated class
+test(crawler): add real JSON fixture for Betano
+chore: upgrade Playwright dependency to 1.42
+docs: document crawler complexity levels
+feat!: remove discontinued /api/v1/partidas endpoint
 ```
 
-## Exemplos inválidos
+## Invalid examples
 
 ```
-fix: Corrigido bug                 ← maiúscula e passado
-feat: adiciona nova funcionalidade.  ← ponto final
-update crawler                     ← sem tipo
-feat: adiciona suporte ao site Hiperbet via Altenar e corrige bug de parsing de odds nulas no mapper JSON que causava NullPointerException  ← título longo demais
+fix: Bug fixed                         ← uppercase and past tense
+feat: add new feature.                 ← trailing period
+update crawler                         ← missing type
+feat: add Hiperbet support via Altenar platform and fix null odds parsing in JSON mapper that caused NullPointerException  ← title too long
 ```

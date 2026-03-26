@@ -1,80 +1,77 @@
 ---
 name: tdd
 description: >
-  Processo TDD (Test-Driven Development). Use quando o usuário pedir para implementar
-  uma nova funcionalidade, corrigir um bug, ou sempre que código de produção precisar
-  ser escrito ou modificado. Carregue automaticamente ao iniciar qualquer tarefa de
-  implementação ou correção de código.
-user-invocable: true
-disable-model-invocation: false
+  Test-Driven Development process for writing production code. Use this skill whenever
+  implementing a new feature, fixing a bug, or modifying any existing production code.
+  Apply it even for small changes — the discipline of writing the test first is what
+  prevents regressions and keeps the codebase trustworthy. If you're about to write
+  or change production code and haven't written a failing test yet, load this skill.
 ---
 
-Todo código de produção — nova funcionalidade ou correção de bug — deve seguir este processo. Nunca escreva código de produção antes de um teste correspondente existir e falhar.
+# Test-Driven Development
 
----
-
-## Nova funcionalidade
-
-1. **Escreva o(s) teste(s) primeiro.**
-   - O teste deve descrever o comportamento esperado e **falhar**.
-   - Use `@Test` com `assertThat`, `assertEquals`, etc.
-   - Não escreva código de produção ainda.
-
-2. **Confirme que o teste falha pelo motivo correto.**
-   - Deve falhar por comportamento ausente, não por erro de compilação ou setup mal configurado.
-   - Execute apenas o teste novo para diagnóstico rápido.
-
-3. **Implemente o código mínimo** para fazer o teste passar.
-   - Sem over-engineering: apenas o suficiente para verde.
-
-4. **Confirme que todos os testes passam** (regressão).
-
-5. **Refatore** com confiança, mantendo os testes verdes.
+The core idea: production code only exists because a test demanded it. Writing the test first forces you to think about the desired behavior before the implementation, and it gives you a safety net for every future change.
 
 ---
 
-## Correção de bug
+## New feature
 
-1. **Reproduza o bug com um teste.**
-   - Crie um teste que demonstre o comportamento errado atual — ele deve **falhar**.
-   - Um teste que já passa antes de qualquer correção não é útil — revise-o.
+1. **Write the test(s) first.**
+   Express the expected behavior as a test that fails. Use `@Test` with `assertThat`, `assertEquals`, etc. Write no production code yet — a failing test is the goal of this step.
 
-2. **Confirme que o teste falha pelo motivo correto.**
+2. **Confirm the test fails for the right reason.**
+   Run only the new test. It should fail because the behavior doesn't exist yet, not because of a compilation error or misconfigured setup. A test that fails for the wrong reason is hiding a problem.
 
-3. **Corrija o código** para fazer o teste passar.
+3. **Write the minimum code to make it pass.**
+   Resist the urge to over-engineer. The simplest implementation that turns the test green is the right one at this stage.
 
-4. **Confirme que todos os testes passam** (regressão).
+4. **Confirm all tests pass** (regression check).
 
----
-
-## Regras invariáveis
-
-- Um teste que passa antes de qualquer implementação é inútil — revise-o.
-- Código de produção só existe se houver teste correspondente que o exigiu.
-- Testes não devem testar implementação; devem testar **comportamento observável**.
+5. **Refactor with confidence**, keeping tests green throughout.
 
 ---
 
-## Tipos de teste
+## Bug fix
 
-| Tipo | Escopo | Característica |
+1. **Reproduce the bug with a test.**
+   Write a test that demonstrates the current wrong behavior — it must fail. A test that passes before any fix is not a useful test; revise it until it actually exposes the bug.
+
+2. **Confirm the test fails for the right reason.**
+
+3. **Fix the code** to make the test pass.
+
+4. **Confirm all tests pass** (regression check).
+
+---
+
+## Core rules
+
+- A test that passes before any implementation exists is useless — revisit it.
+- Tests should verify observable behavior, not implementation details. Testing internals makes refactoring painful.
+- Production code must have a corresponding test that required its existence.
+
+---
+
+## Test types
+
+| Type | Scope | Characteristics |
 |---|---|---|
-| **Unidade** | Classe/função isolada | Sem I/O, sem framework, usa builders/factories para montar estado |
-| **Integração** | Múltiplos componentes + framework | Sobe contexto real (ex: `@SpringBootTest`), moca dependências externas (ex: `@MockBean`) |
-| **E2E** | Sistema completo | Chama dependências reais; não deve rodar em CI por padrão |
+| **Unit** | Single class/function | No I/O, no framework, uses builders/factories to set up state |
+| **Integration** | Multiple components + framework | Real context (e.g. `@SpringBootTest`), external dependencies mocked (e.g. `@MockBean`) |
+| **E2E** | Full system | Hits real dependencies; should not run in CI by default |
 
 ---
 
-## Comandos de referência
+## Reference commands
 
-Adapte conforme o build tool do projeto:
+Adapt to the project's build tool:
 
 ```bash
-# Rodar apenas um teste (diagnóstico rápido)
-./mvnw test -Dtest=NomeDaClasseTest          # Maven
-./gradlew test --tests NomeDaClasseTest      # Gradle
+# Run a single test class (fast feedback loop)
+./mvnw test -Dtest=MyClassName          # Maven
+./gradlew test --tests MyClassName      # Gradle
 
-# Rodar todos os testes (regressão)
+# Run all tests (regression)
 ./mvnw test
 ./gradlew test
 ```
