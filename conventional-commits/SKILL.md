@@ -8,6 +8,35 @@ user-invocable: true
 disable-model-invocation: false
 ---
 
+## Prévia obrigatória antes de qualquer commit
+
+Antes de executar o `git commit`, **sempre** exiba uma prévia para confirmação do usuário no seguinte formato:
+
+```
+Branch destino: <nome-do-branch>
+
+Arquivos adicionados:
+  + caminho/do/arquivo.ext
+  (omitir seção se não houver)
+
+Arquivos removidos:
+  - caminho/do/arquivo.ext
+  (omitir seção se não houver)
+
+Arquivos alterados:
+  ~ caminho/do/arquivo.ext
+  (omitir seção se não houver)
+
+Mensagem do commit:
+  <tipo>(<escopo>): <descrição>
+
+  <corpo, se houver>
+```
+
+Só prossiga com o commit após confirmação explícita do usuário. Se o usuário rejeitar ou sugerir alterações, ajuste e exiba a prévia novamente antes de tentar o commit.
+
+---
+
 Toda mensagem de commit deve seguir o padrão Conventional Commits.
 
 ---
