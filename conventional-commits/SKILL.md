@@ -58,6 +58,7 @@ If the user rejects or suggests changes, adjust and show the preview again befor
 - `type` and `description` are required; `scope` is optional.
 - Title line: max 72 characters.
 - Description: **lowercase**, no trailing period, **imperative mood** ("add" not "added", "fix" not "fixed").
+- **Language: always write the description and body in Portuguese**, regardless of the language used in the request or conversation. The `type` and `scope` fields remain in English as they are part of the format convention.
 
 ---
 
@@ -117,20 +118,21 @@ Closes #42
 ## Valid examples
 
 ```
-feat(crawler): add Hiperbet support via Altenar platform
-fix(service): prevent division by zero in margin calculation
-refactor(json): extract AltenarJsonMapper into dedicated class
-test(crawler): add real JSON fixture for Betano
-chore: upgrade Playwright dependency to 1.42
-docs: document crawler complexity levels
-feat!: remove discontinued /api/v1/partidas endpoint
+feat(crawler): adiciona suporte ao site Hiperbet via plataforma Altenar
+fix(service): evita divisão por zero no cálculo de margem
+refactor(json): extrai AltenarJsonMapper para classe dedicada
+test(crawler): adiciona fixture JSON real da Betano
+chore: atualiza dependência do Playwright para 1.42
+docs: documenta níveis de complexidade de crawlers
+feat!: remove endpoint /api/v1/partidas descontinuado
 ```
 
 ## Invalid examples
 
 ```
-fix: Bug fixed                         ← uppercase and past tense
-feat: add new feature.                 ← trailing period
+fix: Bug corrigido                     ← uppercase and past tense
+feat: adiciona nova funcionalidade.    ← trailing period
 update crawler                         ← missing type
-feat: add Hiperbet support via Altenar platform and fix null odds parsing in JSON mapper that caused NullPointerException  ← title too long
+feat: adiciona suporte ao site Hiperbet via Altenar e corrige parsing de odds nulas no mapper JSON que causava NullPointerException  ← title too long
+feat(crawler): add Hiperbet support    ← description in English
 ```
