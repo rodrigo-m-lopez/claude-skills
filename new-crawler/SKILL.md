@@ -25,6 +25,9 @@ Gather the following before touching any code. Ask the user or investigate with 
    - Does that URL work with a plain `curl`, no cookies?
    - What headers does the request use? (`Referer`, `Origin`, `x-api-key`, cookies…)
    - Is the content in server-rendered HTML or loaded by JS (SPA)?
+4. **Crawl scope** — Is this a single URL (one page or one API endpoint) or a multi-page crawl (a whole section, category listing, or sitemap's worth of pages)?
+   - Single URL → proceed to Step 2 as normal.
+   - Multi-page → complete Step 2 for the entry-point URL first, then follow Step 2.5.
 
 Use these answers to classify the site into one of the levels below before continuing.
 
@@ -79,6 +82,17 @@ JsonObject response = JsonObject.fromUrl(url, headers);
 ```
 
 **Watch out for:** Rotating auth tokens require renewal logic; headers need periodic review.
+
+---
+
+**Anti-bot system quick reference** — when you can identify the protection, skip directly to the indicated level instead of climbing from Level 1. Only skip ahead when the system is positively identified — do not guess.
+
+| Signal observed | Start at level |
+|---|---|
+| Plain 403 / missing headers | 2 |
+| Cloudflare JS Challenge (5-second interstitial page) | 3 |
+| Cloudflare Managed Challenge / advanced fingerprinting | 4 |
+| DataDome, PerimeterX, Imperva, behavioral reCAPTCHA v3 | 5 |
 
 ---
 
@@ -166,6 +180,85 @@ page.evaluate("window.scrollBy(0, " + randomScroll + ")");
 
 ---
 
+## Step 2.5 — Multi-Page Crawl Patterns (skip for single-URL crawls)
+
+These patterns apply when the crawl needs to discover and traverse multiple URLs. Based on
+Firecrawl's open-source crawler architecture.
+
+### URL Discovery — follow this order
+
+**1. robots.txt first** — Always fetch it before crawling. It signals disallowed paths and
+often lists `Sitemap:` entries for bulk URL discovery.
+
+```java
+String robotsTxt = fetchText("https://" + domain + "/robots.txt");
+RobotsResult robots = parseRobotsTxt(robotsTxt, userAgent);
+// robots.sitemapUrls → feed to sitemap parser
+// robots.disallowedPaths → check before enqueueing any URL
+```
+
+**2. Sitemap parsing** — If robots.txt lists sitemaps, parse them for a bulk URL list
+without crawling pages one-by-one. Handle three variants:
+- Standard `sitemap.xml` → list of `<loc>` entries
+- Sitemap index → list of child sitemap URLs → recurse into each
+- Gzip `.xml.gz` → decompress then parse as standard
+
+**3. Link extraction fallback** — Only when no sitemap exists. Extract `<a href>` links
+from each crawled page with Jsoup; filter to same-domain URLs only.
+
+```java
+doc.select("a[href]").stream()
+    .map(el -> el.absUrl("href"))
+    .filter(url -> isSameDomain(url, baseDomain))
+    .forEach(queue::add);
+```
+
+### Crawl State
+
+Track these fields per crawl job to prevent infinite loops and respect scope:
+
+```java
+Set<String> visited           // canonical URLs already fetched
+int maxDepth                  // stop following links beyond this depth
+int maxPages                  // hard ceiling on total pages fetched
+Pattern[] includePaths        // only crawl URLs matching these regex patterns (optional)
+Pattern[] excludePaths        // skip images, PDFs, login paths, etc.
+boolean allowBackwardCrawling // false = only crawl paths equal to or deeper than seed URL
+```
+
+**URL canonicalization for deduplication** — normalize before adding to `visited`:
+
+```java
+String canonical = url.toLowerCase()
+    .replaceFirst("^https?://www\\.", "https://")
+    .replaceFirst("/$", "");
+// See references/multi-page-crawl.md for the full algorithm (fragment stripping,
+// tracking param removal, query param sorting, relative URL resolution)
+```
+
+### Content Validation After Fetch
+
+After receiving a response, validate before storing. A 200 status does not guarantee
+useful content — soft blocks return 200 with an error page body.
+
+```java
+boolean isValidContent(String html) {
+    if (html == null || html.length() < 500) return false;        // empty / stub
+    if (html.contains("Access Denied")) return false;             // generic soft block
+    if (html.contains("cf-error-details")) return false;          // Cloudflare error page
+    return Jsoup.parse(html).body().text().length() > 200;        // meaningful text
+}
+```
+
+If content is invalid and the current complexity level is below 5: escalate one level
+and retry **once**. If the escalated attempt also fails, log a warning and skip the URL.
+Do not loop — a double failure means this URL is blocked at the current setup.
+
+For the full BFS crawl loop skeleton that ties all of this together, read
+`references/multi-page-crawl.md`.
+
+---
+
 ## Step 3 — Implementation (TDD)
 
 Follow the `tdd` skill before writing any production code.
@@ -195,6 +288,12 @@ src/test/resources/json/SiteName/
 - [ ] At least one test uses a real JSON fixture
 - [ ] New crawler is registered in the crawler container/active list
 - [ ] Site is seeded in the database (or created as transient if not persisted)
+
+**Additional checks for multi-page crawls (Step 2.5):**
+- [ ] robots.txt is fetched and `Disallow:` rules are respected before any URL is enqueued
+- [ ] visited URL set uses canonical form (not raw URL string) to prevent duplicate fetches
+- [ ] crawl has a deterministic termination condition (`maxDepth` or `maxPages` ceiling is set)
+- [ ] content validation runs before any page's data is stored or mapped
 
 ---
 
